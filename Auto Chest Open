@@ -1,0 +1,15 @@
+local Players = game:GetService("Players")
+
+local function updateChestPosition()
+    local hrp = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local raidChestSilver = game.Workspace:FindFirstChild("RaidChestSilver")
+
+    if hrp and raidChestSilver then
+        local chestBase = raidChestSilver:FindFirstChild("ChestBase")
+        if chestBase then
+            chestBase.CFrame = hrp.CFrame
+        end
+    end
+end
+
+game:GetService("RunService").RenderStepped:Connect(updateChestPosition)
