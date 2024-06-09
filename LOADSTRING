@@ -1,0 +1,10 @@
+-- KillAura
+loadstring(game:HttpGet("https://raw.githubusercontent.com/VENZUX/LOAD/main/KillAura%20(Arcane%20Mage)", true))()
+-- Auto Chest
+loadstring(game:HttpGet("https://github.com/VENZUX/LOAD/blob/main/Auto%20Chest%20Open", true))()
+-- Auto Next And Begin Rounds
+loadstring(game:HttpGet("https://raw.githubusercontent.com/VENZUX/LOAD/main/Auto%20Skip%20and%20Begin%20Round", true))()
+-- Auto Farm
+loadstring(game:HttpGet("https://raw.githubusercontent.com/VENZUX/LOAD/main/AutoFarm", true))()
+-- KillAura
+loadstring(game:HttpGet("https://raw.githubusercontent.com/VENZUX/LOAD/main/Auto%20Pickup", true))()
