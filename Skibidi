@@ -1,0 +1,118 @@
+local player = game.Players.LocalPlayer
+local mobsFolder = game.Workspace.Mobs -- Assuming the folder is named "Mobs"
+local attackRange = 100 -- Define the range within which the autokill function should activate
+
+-- Function to automatically attack the closest mob
+local function autokill()
+    local closestCollider = nil
+    local attackDistance = 100 -- Updated attack distance to 100 units
+    local currentTime = os.clock()
+    local cooldown = 0.5 -- Cooldown time in seconds
+    local lastAttackTime = player:GetAttribute("LastAttackTime") or 0
+
+    if currentTime - lastAttackTime >= cooldown then
+        -- Iterate through all colliders in the Mobs folder
+        for _, mob in ipairs(mobsFolder:GetChildren()) do
+            if mob:IsA("Model") then
+                local collider = mob:FindFirstChild("Collider")
+                local health = mob:FindFirstChild("HealthProperties") and mob.HealthProperties.Health
+                if collider and health and health.Value > 0 then
+                    local distance = (player.Character.HumanoidRootPart.Position - collider.Position).Magnitude
+                    if distance <= attackDistance and (not closestCollider or distance < (player.Character.HumanoidRootPart.Position - closestCollider.Position).Magnitude) then
+                        closestCollider = collider
+                    end
+                end
+            end
+        end
+
+        if closestCollider then
+            -- Type Of Attack
+            local args = {
+                [1] = "Mage1",
+                [2] = closestCollider.Position
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
+            player:SetAttribute("LastAttackTime", currentTime)
+        end
+    end
+end
+
+-- Function to check if a mob is within range
+local function checkMobProximity()
+    local playerPosition = player.Character.HumanoidRootPart.Position
+    for _, mob in ipairs(mobsFolder:GetChildren()) do
+        if mob:IsA("Model") then
+            local collider = mob:FindFirstChild("Collider")
+            if collider then
+                local distance = (playerPosition - collider.Position).Magnitude
+                if distance <= attackRange then
+                    autokill() -- Activate autokill function if a mob is within range
+                    return
+                end
+            end
+        end
+    end
+end
+
+-- Connect the checkMobProximity function to the RunService.Heartbeat event to continuously check for nearby mobs
+game:GetService("RunService").Heartbeat:Connect(checkMobProximity)
+
+
+local player = game.Players.LocalPlayer
+local mobsFolder = game.Workspace.Mobs -- Assuming the folder is named "Mobs"
+local orbitRadius = 10 -- Define the radius of the orbit
+local orbitHeight = 25 -- Define the height above the mob's collider
+local orbitSpeed = 5 -- Define the speed of the orbit in radians per second
+local attackRotation = CFrame.Angles(math.rad(0), math.rad(60), math.rad(50)) -- Rotation before attacking
+
+-- Function to calculate orbit position around a given collider
+local function calculateOrbitPosition(collider, elapsedTime)
+    local angle = elapsedTime * orbitSpeed
+    local xOffset = math.cos(angle) * orbitRadius
+    local zOffset = math.sin(angle) * orbitRadius
+    return collider.Position + Vector3.new(xOffset, orbitHeight, zOffset)
+end
+
+-- Function to auto teleport player above the collider position of the nearest mob and orbit around it
+local function autoteleport()
+    local currentTime = os.clock()
+    local closestMob = nil
+    local closestDistance = math.huge
+    
+    -- Check if there are any mobs in the folder
+    if #mobsFolder:GetChildren() == 0 then
+        return -- No mobs found, so stop rotation
+    end
+    
+    -- Iterate through all mobs in the folder
+    for _, mob in ipairs(mobsFolder:GetChildren()) do
+        if mob:IsA("Model") then
+            local collider = mob:FindFirstChild("Collider")
+            local health = mob:FindFirstChild("HealthProperties") and mob.HealthProperties.Health
+            if collider and health and health.Value > 0 then
+                local distance = (player.Character.HumanoidRootPart.Position - collider.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestMob = mob
+                end
+            end
+        end
+    end
+    
+    -- Teleport player above the closest alive mob's collider position and orbit around it
+    if closestMob then
+        local collider = closestMob:FindFirstChild("Collider")
+        if collider then
+            -- Calculate orbit position
+            local orbitPosition = calculateOrbitPosition(collider, currentTime)
+            
+            -- Teleport player to the orbit position
+            player.Character:SetPrimaryPartCFrame(CFrame.new(orbitPosition))
+            -- Anchor the player's HumanoidRootPart to prevent movement
+            player.Character.HumanoidRootPart.Anchored = true
+        end
+    end
+end
+
+-- Connect autoteleport function to the RunService.Heartbeat event to continuously check for nearby mobs and teleport
+game:GetService("RunService").Heartbeat:Connect(autoteleport)
